@@ -36,6 +36,9 @@ export class FlyIndex {
     this.words = this.hasher.words;
     this.ids = [];
     this.meta = [];
+    // id -> row. With indexOf, reindexing N records is O(N^2); that is
+    // invisible with integer ids and very visible with uuid strings.
+    this.slots = new Map();
     this.tags = new Uint32Array(capacity * this.words);
     this.counts = new Uint16Array(capacity);   // bits set per row
     this.size = 0;
@@ -71,13 +74,14 @@ export class FlyIndex {
 
   /** Add a tag you already have — the path used when loading from the DB. */
   addTag(id, tag, meta = null) {
-    const existing = this.ids.indexOf(id);
-    const slot = existing === -1 ? this.size : existing;
+    const existing = this.slots.get(id);
+    const slot = existing === undefined ? this.size : existing;
 
     if (slot === this.size) {
       if ((this.size + 1) * this.words > this.tags.length) this.#grow();
       this.ids.push(id);
       this.meta.push(meta);
+      this.slots.set(id, slot);
       this.size++;
     } else {
       this.meta[slot] = meta;
