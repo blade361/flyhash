@@ -1,0 +1,48 @@
+{
+  "name": "flyhash",
+  "version": "0.1.0",
+  "description": "Fuzzy record matching modelled on the fruit fly olfactory circuit. No training, no embedding API, 256 bytes per record.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./flyhash": "./flyhash.js",
+    "./featurize": "./featurize.js"
+  },
+  "files": [
+    "flyhash.js",
+    "featurize.js",
+    "index.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node bench.js",
+    "sweep": "node sweep.js"
+  },
+  "keywords": [
+    "lsh",
+    "locality-sensitive-hashing",
+    "fuzzy-search",
+    "similarity",
+    "connectome",
+    "flyhash",
+    "nearest-neighbour",
+    "deduplication"
+  ],
+  "author": "blade361",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blade361/flyhash.git"
+  },
+  "bugs": {
+    "url": "https://github.com/blade361/flyhash/issues"
+  },
+  "homepage": "https://github.com/blade361/flyhash#readme",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

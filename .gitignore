@@ -1,0 +1,27 @@
+# dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# env
+.env
+.env.*
+!.env.example
+
+# editors
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# build / output
+dist/
+build/
+coverage/
+*.log
+npm-debug.log*
+
+# local scratch
+tmp/
+*.local.js

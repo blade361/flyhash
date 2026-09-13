@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FlyHash — search built from an insect olfactory circuit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ground:#16242a;
+    --ground-lift:#1d2f36;
+    --rule:#2d444c;
+    --bone:#e9e3d5;
+    --bone-dim:#8fa3a8;
+    --signal:#f0a83a;
+    --signal-soft:#8a6a2e;
+    --cell-off:#22363d;
+    --ok:#7fc4a3;
+    --font-sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+    --font-mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  }
+  :root:not([data-theme="light"]){color-scheme:dark}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--ground);
+    color:var(--bone);
+    font-family:var(--font-sans);
+    font-weight:300;
+    font-size:17px;
+    line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:860px;margin:0 auto;padding:clamp(28px,6vw,72px) clamp(20px,5vw,32px) 96px}
+
+  h1{
+    font-weight:600;
+    font-size:clamp(30px,5.6vw,46px);
+    line-height:1.08;
+    letter-spacing:-.022em;
+    margin:0 0 18px;
+    max-width:16ch;
+  }
+  .standfirst{
+    font-size:clamp(17px,2.2vw,19px);
+    color:var(--bone-dim);
+    max-width:62ch;
+    margin:0 0 14px;
+  }
+  h2{
+    font-weight:600;
+    font-size:20px;
+    letter-spacing:-.012em;
+    margin:56px 0 14px;
+  }
+  p{max-width:68ch;margin:0 0 14px}
+  a{color:var(--signal)}
+
+  /* ---- the instrument ---- */
+  .rig{
+    margin:34px 0 0;
+    border:1px solid var(--rule);
+    border-radius:3px;
+    background:var(--ground-lift);
+    overflow:hidden;
+  }
+  .rig-head{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px 20px;
+    align-items:baseline;
+    padding:14px 18px;
+    border-bottom:1px solid var(--rule);
+  }
+  .rig-head h3{margin:0;font-size:15px;font-weight:600}
+  .rig-head span{font-family:var(--font-mono);font-size:12.5px;color:var(--bone-dim)}
+
+  .field{padding:18px}
+  label{display:block;font-size:13.5px;color:var(--bone-dim);margin-bottom:7px}
+  input[type=text]{
+    width:100%;
+    background:var(--ground);
+    border:1px solid var(--rule);
+    border-radius:2px;
+    color:var(--bone);
+    font-family:var(--font-sans);
+    font-size:16px;
+    padding:11px 13px;
+  }
+  input[type=text]:focus{outline:2px solid var(--signal);outline-offset:1px;border-color:transparent}
+
+  /* the 2048 Kenyon cells, 64 x 32 */
+  .layer{padding:0 18px 18px}
+  #cells{width:100%;height:auto;display:block}
+  .cell{fill:var(--cell-off)}
+  .cell.win{fill:var(--signal)}
+
+  .readout{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px 26px;
+    padding:12px 18px 18px;
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    color:var(--bone-dim);
+    border-top:1px solid var(--rule);
+  }
+  .readout b{color:var(--bone);font-weight:500}
+
+  /* ---- comparison ---- */
+  .pair{display:grid;gap:14px;grid-template-columns:1fr 1fr;padding:18px}
+  @media(max-width:620px){.pair{grid-template-columns:1fr}}
+  .meter{padding:0 18px 20px}
+  .meter-track{height:9px;background:var(--ground);border:1px solid var(--rule);border-radius:2px;overflow:hidden}
+  .meter-fill{height:100%;background:var(--signal);width:0;transition:width .18s ease-out}
+  .meter-label{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:12.5px;color:var(--bone-dim);margin-top:8px}
+  .meter-label b{color:var(--bone);font-weight:500}
+  .floor-note{font-size:13px;color:var(--signal-soft);margin-top:6px;font-family:var(--font-mono)}
+
+  /* ---- results ---- */
+  .results{padding:4px 18px 18px}
+  .row{
+    display:grid;
+    grid-template-columns:56px 1fr;
+    gap:14px;
+    align-items:baseline;
+    padding:9px 0;
+    border-top:1px solid var(--rule);
+  }
+  .row:first-child{border-top:none}
+  .row .score{font-family:var(--font-mono);font-size:13px;color:var(--signal)}
+  .row .name{font-size:15px}
+  .row .sub{font-size:13px;color:var(--bone-dim)}
+  .empty{color:var(--bone-dim);font-size:14.5px;padding:12px 0}
+
+  .steps{max-width:68ch;padding-left:1.1em;margin:0 0 14px}
+  .steps li{margin-bottom:9px}
+  .steps li::marker{color:var(--signal);font-family:var(--font-mono);font-size:14px}
+
+  footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-size:14px;color:var(--bone-dim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Search that works the way a fly smells</h1>
+  <p class="standfirst">A fruit fly identifies an odour with about 2,000 neurons and no training data. The same trick gives you fuzzy record matching in 256 bytes per row, with no embedding API and no vector database.</p>
+
+  <div class="rig">
+    <div class="rig-head">
+      <h3>Kenyon cell layer</h3>
+      <span id="hdr">2048 cells · top 5% fire · fan-in 6</span>
+    </div>
+    <div class="field">
+      <label for="probe">Type anything. The lit cells are its tag.</label>
+      <input id="probe" type="text" value="Orban Containerdienst Mannheim" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="layer">
+      <svg id="cells" viewBox="0 0 640 320" xmlns="http://www.w3.org/2000/svg" aria-label="2048 Kenyon cells, roughly 102 lit"></svg>
+    </div>
+    <div class="readout">
+      <span>lit <b id="r-active">102</b> / 2048 <i style="font-style:normal;opacity:.65">(max 102)</i></span>
+      <span>tag size <b>256 bytes</b></span>
+      <span>hash time <b id="r-time">—</b></span>
+    </div>
+  </div>
+
+  <h2>Two records, one number</h2>
+  <p>Similarity is the count of cells both inputs light up. No distance maths, no decimals. Edit either side.</p>
+
+  <div class="rig">
+    <div class="pair">
+      <div>
+        <label for="left">Record A</label>
+        <input id="left" type="text" value="Orban Containerdienst GmbH, Mannheim" autocomplete="off" spellcheck="false">
+      </div>
+      <div>
+        <label for="right">Record B</label>
+        <input id="right" type="text" value="Orban Container-Dienst Mannheim GmbH" autocomplete="off" spellcheck="false">
+      </div>
+    </div>
+    <div class="meter">
+      <div class="meter-track"><div class="meter-fill" id="fill"></div></div>
+      <div class="meter-label"><span id="shared">—</span><b id="pct">—</b></div>
+      <div class="floor-note" id="floor">unrelated records land near 5% — that is the noise floor, not a weak match</div>
+    </div>
+  </div>
+
+  <h2>Against a contact list</h2>
+  <p>Sixteen records, deliberately messy: abbreviations, misspellings, German and Spanish, the kind of thing that accumulates in a CRM. Every one was hashed once. Searching is counting.</p>
+
+  <div class="rig">
+    <div class="field">
+      <label for="query">Search</label>
+      <input id="query" type="text" value="container dienst mannheim" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="results" id="results"></div>
+  </div>
+
+  <h2>What it is doing</h2>
+  <ol class="steps">
+    <li>Turn the text into 4,096 numbers by counting words and character fragments.</li>
+    <li>Scatter those onto 2,048 cells through fixed random connections, each cell sampling six inputs. The data gets bigger, which is the point.</li>
+    <li>Keep the loudest 5%, switch everything else off. That's the tag.</li>
+  </ol>
+  <p>Nothing is learned. The connections are generated once from a seed and never change, which is exactly what the fly does. It means no training step, no model to host, and a tag that stays valid for as long as the seed does.</p>
+
+  <h2>What it is not doing</h2>
+  <p>It has no idea what words mean. "Skip hire" and "waste disposal" share no characters, so they score at the noise floor. This is a fast first pass over shared vocabulary, spelling and typos, not a semantic search. Use it to narrow thousands of rows to fifty, then send those fifty to a model if you need meaning.</p>
+
+  <footer>
+    Method from Dasgupta, Stevens &amp; Navlakha, <i>A neural algorithm for a fundamental computing problem</i>, Science 2017. This page runs the real implementation, not a mock-up.
+  </footer>
+</div>
+
+<script>
+/* ---------------- the algorithm, same as the Node version ---------------- */
+const DIM = 4096, CELLS = 2048, FAN_IN = 6, SPARSITY = 0.05, SEED = 20260913;
+const K = Math.round(CELLS * SPARSITY);
+
+function mulberry32(a){a>>>=0;return function(){a=(a+0x6d2b79f5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296;};}
+
+const PROJ = (() => {
+  const rand = mulberry32(SEED), p = new Int32Array(CELLS * FAN_IN), seen = new Set();
+  for (let c = 0; c < CELLS; c++) {
+    seen.clear(); let w = 0;
+    while (w < FAN_IN) { const i = (rand() * DIM) | 0; if (seen.has(i)) continue; seen.add(i); p[c * FAN_IN + w++] = i; }
+  }
+  return p;
+})();
+
+function fnv1a(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return h>>>0;}
+
+function vectorize(text){
+  const v = new Float64Array(DIM);
+  const clean = String(text).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
+    .replace(/[^a-z0-9äöüß\s]+/g,' ').replace(/\s+/g,' ').trim();
+  for (const tok of clean.split(' ')) {
+    if (tok.length < 2) continue;
+    v[fnv1a(tok) % DIM] += 1;
+    if (tok.length >= 4) {
+      const pad = '^' + tok + '$';
+      for (let i = 0; i + 4 <= pad.length; i++) v[fnv1a(pad.slice(i, i + 4)) % DIM] += 0.5;
+    }
+  }
+  let n = 0;
+  for (let i = 0; i < DIM; i++) { if (v[i] > 0) v[i] = 1 + Math.log(v[i]); n += v[i] * v[i]; }
+  n = Math.sqrt(n);
+  if (n > 0) for (let i = 0; i < DIM; i++) v[i] /= n;
+  return v;
+}
+
+function activate(v){
+  let s = 0;
+  for (let i = 0; i < DIM; i++) s += v[i];
+  const mean = s / DIM, scale = mean > 0 ? 1 / mean : 1;
+  const out = new Float64Array(CELLS);
+  for (let c = 0; c < CELLS; c++) {
+    let acc = 0, b = c * FAN_IN;
+    for (let f = 0; f < FAN_IN; f++) acc += v[PROJ[b + f]];
+    out[c] = acc * scale;
+  }
+  return out;
+}
+
+function winners(text){
+  const act = activate(vectorize(text));
+  // Only cells that actually fired can win. Padding up to K with silent cells
+  // gives every short input the same block of low-index bits, which reads as
+  // similarity but is just the padding. A tag may hold fewer than K bits.
+  const live = Array.from(act.keys()).filter(i => act[i] > 0).sort((a, b) => act[b] - act[a]);
+  return new Set(live.slice(0, K));
+}
+
+function overlap(a, b){ let n = 0; for (const x of a) if (b.has(x)) n++; return n; }
+
+/* Cosine over the binary tags, so a short query is scored against the bits it
+   actually has rather than against a K it never reaches. */
+function sim(a, b){
+  if (!a.size || !b.size) return 0;
+  return overlap(a, b) / Math.sqrt(a.size * b.size);
+}
+
+/* ---------------- cell grid ---------------- */
+const COLS = 64, ROWS = 32, SVG = document.getElementById('cells');
+const rects = [];
+(function build(){
+  const cw = 640 / COLS, ch = 320 / ROWS, size = Math.min(cw, ch) - 1.4;
+  let markup = '';
+  for (let c = 0; c < CELLS; c++) {
+    const x = (c % COLS) * cw + (cw - size) / 2;
+    const y = ((c / COLS) | 0) * ch + (ch - size) / 2;
+    markup += `<rect class="cell" x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${size.toFixed(2)}" height="${size.toFixed(2)}" rx="0.8"/>`;
+  }
+  SVG.innerHTML = markup;
+  SVG.querySelectorAll('rect').forEach(r => rects.push(r));
+})();
+
+let lit = new Set();
+function paint(text){
+  const t0 = performance.now();
+  const w = winners(text);
+  const ms = performance.now() - t0;
+  for (const c of lit) if (!w.has(c)) rects[c].classList.remove('win');
+  for (const c of w) if (!lit.has(c)) rects[c].classList.add('win');
+  lit = w;
+  document.getElementById('r-active').textContent = w.size;
+  document.getElementById('r-time').textContent = ms.toFixed(2) + ' ms';
+}
+
+/* ---------------- pair comparison ---------------- */
+function comparePair(){
+  const a = winners(document.getElementById('left').value);
+  const b = winners(document.getElementById('right').value);
+  const n = overlap(a, b), pct = sim(a, b);
+  document.getElementById('fill').style.width = (pct * 100).toFixed(1) + '%';
+  document.getElementById('shared').textContent =
+    `${n} shared · ${a.size} vs ${b.size} cells lit`;
+  document.getElementById('pct').textContent = (pct * 100).toFixed(1) + '%';
+  const f = document.getElementById('floor');
+  f.textContent = pct < 0.12
+    ? 'at the noise floor — these two have nothing in common'
+    : pct < 0.35 ? 'weak overlap — a few shared fragments'
+    : pct < 0.7  ? 'related — shared vocabulary or spelling'
+                 : 'near-duplicate';
+}
+
+/* ---------------- record search ---------------- */
+const RECORDS = [
+  { name: 'Orban Containerdienst GmbH',   sub: 'Mannheim · skip hire' },
+  { name: 'Orban Container-Dienst',       sub: 'Mannheim · skip hire · legacy record' },
+  { name: 'ORBAN CONTAINERDIESNT GMBH',   sub: 'Manheim · imported, misspelled' },
+  { name: 'Klinger Agrarservice',         sub: 'Heidelberg · agricultural services' },
+  { name: 'Klinger Agrar Service e.K.',   sub: 'Heidelberg · duplicate?' },
+  { name: 'Orban Klinger',                sub: 'Mannheim · merged entity' },
+  { name: 'Rheinland Entsorgung AG',      sub: 'Ludwigshafen · waste disposal' },
+  { name: 'Mannheimer Bauschutt GmbH',    sub: 'Mannheim · demolition' },
+  { name: 'Containerdienst Süd',          sub: 'Karlsruhe · skip hire' },
+  { name: 'Transportes Riópar S.L.',      sub: 'Albacete · logistics' },
+  { name: 'Maquinaria Agrícola Albacete', sub: 'Albacete · farm machinery' },
+  { name: 'Hotel Sierra del Segura',      sub: 'Riópar · hospitality' },
+  { name: 'Rackmaster PMS',               sub: 'software · property management' },
+  { name: 'Nordsee Logistik GmbH',        sub: 'Hamburg · freight' },
+  { name: 'Valencia Fleet Services',      sub: 'Valencia · fleet maintenance' },
+  { name: 'LEO Station Keeping Ltd',      sub: 'satellite operations' },
+];
+RECORDS.forEach(r => { r.tag = winners(r.name + ' ' + r.sub); });
+
+function runSearch(){
+  const q = document.getElementById('query').value.trim();
+  const box = document.getElementById('results');
+  if (q.length < 2) { box.innerHTML = '<div class="empty">Type at least two characters.</div>'; return; }
+
+  const qt = winners(q);
+  const hits = RECORDS
+    .map(r => ({ ...r, score: sim(qt, r.tag) }))
+    .sort((a, b) => b.score - a.score)
+    .filter(r => r.score > 0.12)
+    .slice(0, 6);
+
+  box.innerHTML = hits.length
+    ? hits.map(h => `<div class="row"><div class="score">${(h.score * 100).toFixed(0)}%</div>`
+        + `<div><div class="name">${h.name}</div><div class="sub">${h.sub}</div></div></div>`).join('')
+    : '<div class="empty">Nothing above the noise floor. Every record scored like an unrelated one.</div>';
+}
+
+/* ---------------- wiring ---------------- */
+const probe = document.getElementById('probe');
+probe.addEventListener('input', () => paint(probe.value));
+['left', 'right'].forEach(id => document.getElementById(id).addEventListener('input', comparePair));
+document.getElementById('query').addEventListener('input', runSearch);
+
+paint(probe.value);
+comparePair();
+runSearch();
+</script>
+</body>
+</html>
