@@ -123,7 +123,7 @@ const industries = ['skip hire', 'agricultural services', 'hotel software', 'log
 const cities = ['Mannheim', 'Heidelberg', 'Albacete', 'Riópar', 'Hamburg', 'Valencia'];
 const suffix = ['GmbH', 'S.L.', 'AG', 'Ltd', 'e.K.'];
 
-const N = 100_000;
+const N = process.env.CI ? 20_000 : 100_000;
 const idx = new FlyIndex({ weights: { name: 3, industry: 2, notes: 1 } });
 
 // A cyclic generator makes thousands of literal duplicates, which poisons the
