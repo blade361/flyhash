@@ -6,7 +6,7 @@ step, no embedding API, no vector database. 256 bytes per record.
 Based on Dasgupta, Stevens & Navlakha, *A neural algorithm for a fundamental
 computing problem*, Science 2017.
 
-[Live demo](https://claude.ai/code/artifact/ee1628cc-8d29-436e-9c25-71096107dfe4) — runs the real implementation in the browser.
+[Live demo](https://flyhash.onrender.com) — runs the real implementation in the browser.
 
 ## Install
 
